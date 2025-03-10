@@ -23,11 +23,17 @@
             <ul>
                 <li v-for="detail in details">{{ detail }}</li>
             </ul>
-            <div v-for="variant in variants">
-                <p>{{ variant.variantColor }}</p>
+            <div v-for="variant in variants" :key="variant.variantId">
+                <p @mouseover="updateProduct(variant.variantImage)">
+                    {{ variant.variantColor }}
+                </p>
             </div>
-
+            <div class="cart">
+                <p>Cart({{ cart }})</p>
+            </div>
+            <button v-on:click="addToCart">Add to cart</button>
         </div>
+
     </div>
 </div>
 </body>
