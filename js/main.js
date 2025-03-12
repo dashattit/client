@@ -1,7 +1,7 @@
 Vue.component('product-details', {
     template: `
     <ul>
-        <li v-for="detail in details" :key="detail">{{ detail }}</li>
+        <li v-for="detail in details">{{ detail }}</li>
     </ul>
     `,
 
@@ -18,7 +18,7 @@ Vue.component('product', {
     <div class="product">
 
         <div class="product-image">
-            <img :src="image" :alt="altText"/>
+            <img :src="image" :alt="altText">
         </div>
 
         <div class="product-info">
@@ -48,16 +48,20 @@ Vue.component('product', {
                 <li>{{ size }}</li>
             </ul>
 
-            <div class="cart">
-                <p>Cart({{ cart }})</p>
-            </div>
+<!--            <div class="cart">-->
+<!--                <p>Cart({{ cart }})</p>-->
+<!--            </div>-->
 
             <button v-on:click="addToCart"
                     :disabled="!inStock"
                     :class="{ disabledButton: !inStock }">
                 Add to cart
             </button>
-            <button v-on:click="removeFromCart">Remove from cart</button>
+            <button v-on:click="removeFromCart"
+                    :disabled="!inStock"
+                    :class="{ disabledButton: !inStock }">
+                    Remove from cart
+            </button>
         </div>
 
     </div>
@@ -67,7 +71,6 @@ Vue.component('product', {
             type: Boolean,
             required: true
         },
-
         details: {
             type: Array,
             required: true
@@ -103,19 +106,19 @@ Vue.component('product', {
     },
     methods: {
         addToCart() {
-            this.cart += 1
-        },
-
-        removeFromCart(){
-            if(this.cart > 0){
-                this.cart -= 1
-            }
+            this.$emit('add-to-cart',
+            this.variants[this.selectedVariant].variantId);
         },
 
         updateProduct(index) {
             this.selectedVariant = index;
             console.log(index);
-        }
+        },
+
+        removeFromCart() {
+            this.$emit('remove-from-cart',
+                this.variants[this.selectedVariant].variantId);
+        },
     },
     computed: {
         title() {
@@ -150,6 +153,17 @@ let app = new Vue({
     data: {
         premium: true,
         details: ['80% cotton', '20% polyester', 'Gender-neutral'],
+        cart: [],
+    },
+
+    methods: {
+        updateCart(id) {
+            this.cart.push(id);
+        },
+
+        removeFromCart(id) {
+            this.cart.splice(this.cart.indexOf(id), 1);
+        },
     }
 })
 
