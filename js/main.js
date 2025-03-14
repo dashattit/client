@@ -3,11 +3,9 @@ let eventBus = new Vue()
 Vue.component('product', {
     template: `
     <div class="product">
-
         <div class="product-image">
             <img :src="image" :alt="altText">
         </div>
-
         <div class="product-info">
             <h1>{{ title }}</h1>
             <p>{{ description }}</p>
@@ -21,24 +19,15 @@ Vue.component('product', {
 
             <a :href="link">More products like this</a>
 
-            <product-details :details="details"></product-details>
-            <p>Shipping: {{ shipping }}</p>
-
             <div class="color-box"
                     v-for="(variant, index) in variants"
                     :key="variant.variantId"
                     :style="{ backgroundColor:variant.variantColor }"
                     @mouseover="updateProduct(index)">
             </div>
-
             <ul v-for="size in sizes">
                 <li>{{ size }}</li>
             </ul>
-
-<!--            <div class="cart">-->
-<!--                <p>Cart({{ cart }})</p>-->
-<!--            </div>-->
-
             <button v-on:click="addToCart"
                     :disabled="!inStock"
                     :class="{ disabledButton: !inStock }">
@@ -60,7 +49,7 @@ Vue.component('product', {
         details: {
             type: Array,
             required: true
-        }
+        },
     },
     data(){
         return {
@@ -96,47 +85,29 @@ Vue.component('product', {
             this.$emit('add-to-cart',
                 this.variants[this.selectedVariant].variantId);
         },
-
         updateProduct(index) {
             this.selectedVariant = index;
             console.log(index);
         },
-
         removeFromCart() {
             this.$emit('remove-from-cart',
                 this.variants[this.selectedVariant].variantId);
         },
-
-
     },
     computed: {
         title() {
             return this.brand + ' ' + this.product;
         },
-
         image(){
             return this.variants[this.selectedVariant].variantImage;
         },
-
         inStock(){
             return this.variants[this.selectedVariant].variantQuantity;
         },
-
         sale(){
             return this.brand + ' ' + this.product + ': ' + (this.onSale ? 'on Sale' : 'off Sale');
         },
-
-        shipping() {
-            if (this.premium) {
-                return "Free";
-            } else {
-                return 2.99
-            }
-        },
-
-
     },
-
 })
 
 Vue.component('product-details', {
@@ -182,21 +153,18 @@ Vue.component('product-review', {
         </p>
         
         <p>
-            <legend>Would you recommend this product?</legend>
-            
+            <label>Would you recommend this product?</label>
             <input type="radio" id="yes" value="yes" v-model="recommend">
             <label for="yes">Yes</label>
             
             <input type="radio" id="no" value="no" v-model="recommend">
             <label for="no">No</label>
         </p>
-        
         <p>
            <input type="submit" value="Submit">
         </p>
-
     </form>
- `,
+    `,
     data() {
         return {
             name: null,
@@ -233,33 +201,37 @@ Vue.component('product-review', {
 Vue.component('product-tabs', {
     template: `
      <div>   
-       <ul>
          <span class="tab"
                :class="{ activeTab: selectedTab === tab }"
                v-for="(tab, index) in tabs"
                @click="selectedTab = tab"
-         >{{ tab }}</span>
-       </ul>
-       <div v-show="selectedTab === 'Make a Review'">
-         <p v-if="!reviews.length">There are no reviews yet.</p>
-         <ul>
-           <li v-for="review in reviews">
-           <p>{{ review.name }}</p>
-           <p>Rating: {{ review.rating }}</p>
-           <p>{{ review.review }}</p>
-           <p>{{ review.recommend }}</p>
-           </li>
-         </ul>
-       </div>
-       <div>
+         >{{ tab }}
+         </span>
+         <div v-show="selectedTab === 'Reviews'">
+            <p v-if="!reviews.length">There are no reviews yet.</p>
+            <ul v-else>
+               <li v-for="(review, index) in reviews" :key="index">
+                   <p>{{ review.name }}</p>
+                   <p>Rating: {{ review.rating }}</p>
+                   <p>{{ review.review }}</p>
+                   <p>{{ review.recommend }}</p>
+               </li>
+            </ul>
+         </div>
+         <div v-show="selectedTab === 'Make a Review'">
             <product-review></product-review>
-       </div>
+         </div>
+         <div v-show="selectedTab === 'Shipping'">
+            <p>Shipping: {{ shipping }}</p>
+         </div>
+         <div v-show="selectedTab === 'Details'">
+            <product-details :details="details"></product-details>
+         </div>
      </div>
-
- `,
+    `,
     data() {
         return {
-            tabs: ['Reviews', 'Make a Review'],
+            tabs: ['Reviews', 'Make a Review', 'Shipping', 'Details'],
             selectedTab: 'Reviews'  // устанавливается с помощью @click
         }
     },
@@ -267,12 +239,36 @@ Vue.component('product-tabs', {
         reviews: {
             type: Array,
             required: false
+        },
+        premium: {
+            type: Boolean,
+            required: true
+        },
+        details: {
+            type: Array,
+            required: true
         }
     },
     methods: {
-        addReview(productReview){
-            this.$emit('add-review',productReview);
-        }
+        addReview(productReview) {
+            this.reviews.push(productReview);
+            this.$emit('add-review', productReview);
+        },
+
+    },
+    mounted() {
+        eventBus.$on('review-submitted', productReview => {
+            this.reviews.push(productReview)
+        })
+    },
+    computed: {
+        shipping() {
+            if (this.premium) {
+                return "Free";
+            } else {
+                return 2.99
+            }
+        },
     },
 })
 
@@ -289,15 +285,12 @@ let app = new Vue({
         updateCart(id) {
             this.cart.push(id);
         },
-
         removeFromCart(id) {
             this.cart.splice(this.cart.indexOf(id), 1);
         },
-
         addReview(productReview) {
             this.reviews.push(productReview)
         },
-
     }
 })
 
