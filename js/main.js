@@ -1,5 +1,35 @@
 let eventBus = new Vue()
 
+Vue.component('modal', {
+    template: `
+    <div class="modal-overlay" v-if="visible">
+        <div class="modal-content">
+            <span class="close" @click="closeModal">&times;</span>
+            <h2>Товар добавлен в корзину!</h2>
+            <p><strong>Название:</strong> {{ product.title }}</p>
+            <p><strong>Цвет:</strong> {{ product.color }}</p>
+            <img :src="product.image" :alt="product.title" class="modal-image">
+        </div>
+    </div>
+    `,
+    props: {
+        visible: {
+            type: Boolean,
+            required: true
+        },
+        product: {
+            type: Object,
+            required: true
+        }
+    },
+    methods: {
+        closeModal() {
+            this.$emit('close-modal');
+        }
+        // метод для закрытия окна
+    }
+});
+
 Vue.component('product', {
     template: `
     <div class="product">
@@ -82,33 +112,36 @@ Vue.component('product', {
     },
     methods: {
         addToCart() {
-            this.$emit('add-to-cart',
-                this.variants[this.selectedVariant].variantId);
+            this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
+
+            eventBus.$emit('show-modal', {
+                title: this.title,
+                color: this.variants[this.selectedVariant].variantColor,
+                image: this.variants[this.selectedVariant].variantImage
+            });
         },
         updateProduct(index) {
             this.selectedVariant = index;
-            console.log(index);
         },
         removeFromCart() {
-            this.$emit('remove-from-cart',
-                this.variants[this.selectedVariant].variantId);
+            this.$emit('remove-from-cart', this.variants[this.selectedVariant].variantId);
         },
     },
     computed: {
         title() {
             return this.brand + ' ' + this.product;
         },
-        image(){
+        image() {
             return this.variants[this.selectedVariant].variantImage;
         },
-        inStock(){
+        inStock() {
             return this.variants[this.selectedVariant].variantQuantity;
         },
-        sale(){
+        sale() {
             return this.brand + ' ' + this.product + ': ' + (this.onSale ? 'on Sale' : 'off Sale');
         },
     },
-})
+});
 
 Vue.component('product-details', {
     template: `
@@ -279,6 +312,13 @@ let app = new Vue({
         details: ['80% cotton', '20% polyester', 'Gender-neutral'],
         cart: [],
         reviews: [],
+        showModal: false,
+        modalProduct: {
+            title: '',
+            color: '',
+            image: ''
+        }
+        // данные для самого окна
     },
 
     methods: {
@@ -289,8 +329,18 @@ let app = new Vue({
             this.cart.splice(this.cart.indexOf(id), 1);
         },
         addReview(productReview) {
-            this.reviews.push(productReview)
+            this.reviews.push(productReview);
         },
+        closeModal() {
+            this.showModal = false;
+            // метод для закрытия модального окна
+        }
+    },
+    mounted() {
+        eventBus.$on('show-modal', (product) => {
+            this.modalProduct = product;
+            this.showModal = true;
+        });
     }
 })
 

@@ -17,6 +17,8 @@
     </div>
     <product :premium="premium" :details="details" @add-to-cart="updateCart" @remove-from-cart="removeFromCart"></product>
     <product-tabs :reviews="reviews" @add-review="addReview" :details="details" :premium="premium"></product-tabs>
+    <modal :visible="showModal" :product="modalProduct" @close-modal="closeModal"></modal>
+<!--    поле элемента видно-->
 </div>
 </body>
 </html>
